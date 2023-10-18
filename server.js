@@ -10,7 +10,7 @@ dotenv.config({ path: './config/config.env' });
 const app = express();
 
 // Mount routers
-app.use('/api/v1/bootcamps', bootcamps); // Bu yolu bootcamps'teki tüm routerlara otomatik veriyor. Bu sayede bootcamps'teki routerlara tek tek yol eklemiyoruz.
+app.use('/api/v1/bootcamps', bootcamps);
 
 const PORT = process.env.PORT || 5000;
 
