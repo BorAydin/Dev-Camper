@@ -15,6 +15,9 @@ const bootcamps = require('./routes/bootcamps');
 
 const app = express();
 
+// Body parser
+app.use(express.json()); // Bunu yapmayınca crud istekleri vsc konsolunda undefined dönüyor. undefined'ın sebebi de request'in middleware(misal express) içermesi bunun olmaması için request.body'den middleware'ı ayırıp veriyi alıyor, parse ediyor.
+
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -35,7 +38,7 @@ const server = app.listen(
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Hata: ${err.message}`);
+  console.log(`Hata: ${err.message}`.red);
   // Close server & exit process
   server.close(() => process.exit(1));
 });
