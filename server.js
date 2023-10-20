@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const errorHandler = require('./middleware/error');
 const connectDB = require('./config/db');
 
 // Load env vars
@@ -16,7 +17,7 @@ const bootcamps = require('./routes/bootcamps');
 const app = express();
 
 // Body parser
-app.use(express.json()); // Bunu yapmayınca crud istekleri vsc konsolunda undefined dönüyor. undefined'ın sebebi de request'in middleware(misal express) içermesi bunun olmaması için request.body'den middleware'ı ayırıp veriyi alıyor, parse ediyor.
+app.use(express.json());
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -25,6 +26,8 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mount routers
 app.use('/api/v1/bootcamps', bootcamps);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
