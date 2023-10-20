@@ -1,3 +1,4 @@
+const ErrorResponse = require('../utils/errorResponse');
 const Bootcamp = require('../models/Bootcamp');
 
 // desc     Get all bootcamps
@@ -12,7 +13,7 @@ exports.getBootcamps = async (req, res, next) => {
       .json({ succces: true, count: bootcamps.length, data: bootcamps });
   } catch (err) {
     //res.status(400).json({ succces: false });
-    next(err);
+    next(new ErrorResponse(`${req.params.id}'li bootcamp bulunamadı.`, 404));
   }
 };
 
