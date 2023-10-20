@@ -6,17 +6,28 @@ const errorHandler = (err, reg, res, next) => {
   error.message = err.message;
 
   // Log to console for dev
-  console.log(err.stack.red);
+  console.log(err);
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
     const message = `${err.value}'li kaynak bulunamadı.`;
-    error = new ErrorRespons(message, 404);
+    error = new ErrorResponse(message, 404);
   }
 
-  res.status(err.statusCode || 500).json({
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const message = 'Daha önce girilen bir değeri girdiniz.';
+    error = new ErrorResponse(message, 400);
+  }
+
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const message = 'Daha önce girilen bir değeri girdiniz.';
+    error = new ErrorResponse(message, 400);
+  }
+  res.status(error.statusCode || 500).json({
     success: false,
-    error: err.message || 'Sunucu Hatası',
+    error: error.message || 'Sunucu Hatası',
   });
 };
 
