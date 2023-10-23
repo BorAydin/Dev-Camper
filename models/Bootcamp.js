@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const geocoder = require('../utils/geocoder');
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -9,7 +10,7 @@ const BootcampSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'İsim 50 karakteri geçemez.'],
   },
-  slug: String, // Devcentral Bootcamp ismini path'e şöyle geçiriyor. devcentral-bootcamp Özeti: URL friendly version of name for Frontend Dev.
+  slug: String,
   description: {
     type: String,
     required: [true, 'Lütfen isim giriniz.'],
@@ -105,9 +106,26 @@ const BootcampSchema = new mongoose.Schema({
 BootcampSchema.pre('save', function (next) {
   this.slug = slugify(this.name, {
     lower: true,
-  }); /* this ile schemadaki fieldlara(alanlara) erişiyoruz. lower küçük yazdıracak, hyphens ya da underscore özelliklleri de var slugify'ın) */
+  });
   next();
-}); /* mongoose pre midleware'ı bizim yapacağımız operasyonlardan,işlemlerden, isteklerden önce çalışcak. Biz burayı
-istediğimiz şekilde kodlayıp düzenleyebiliyoruz. next() ile de diğer middleware ile çağrı yapar. */
+});
 
+// Geocode & create location field
+BootcampSchema.pre('save', async function (next) {
+  const loc = await geocoder.geocode(this.address);
+  this.location = {
+    type: 'Point',
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAdress: loc[0].formattedAddress,
+    street: loc[0].streetName,
+    city: loc[0].city,
+    state: loc[0].stateCode,
+    zipcode: loc[0].zipcode,
+    country: loc[0].countryCode,
+  };
+
+  // Do not save address in DB
+  this.address = undefined;
+  next();
+});
 module.exports = mongoose.model('Bootcamp', BootcampSchema);
