@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -99,5 +100,14 @@ const BootcampSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+// Create bootcamp slug from the name
+BootcampSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, {
+    lower: true,
+  }); /* this ile schemadaki fieldlara(alanlara) erişiyoruz. lower küçük yazdıracak, hyphens ya da underscore özelliklleri de var slugify'ın) */
+  next();
+}); /* mongoose pre midleware'ı bizim yapacağımız operasyonlardan,işlemlerden, isteklerden önce çalışcak. Biz burayı
+istediğimiz şekilde kodlayıp düzenleyebiliyoruz. next() ile de diğer middleware ile çağrı yapar. */
 
 module.exports = mongoose.model('Bootcamp', BootcampSchema);
