@@ -33,3 +33,21 @@ const importData = async () => {
     console.log(err);
   }
 };
+
+// Delete data
+const deleteData = async () => {
+  try {
+    await Bootcamp.deleteMany();
+
+    console.log('Veri Silindi...'.red.inverse);
+    process.exit();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+if (process.argv[2] === '-i') {
+  importData();
+} else if (process.argv[2] === '-d') {
+  deleteData();
+}
