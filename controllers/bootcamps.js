@@ -9,15 +9,34 @@ const Bootcamp = require('../models/Bootcamp');
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let query;
 
-  let queryStr = JSON.stringify(req.query);
+  // Copy req.query
+  const reqQuery = { ...req.query };
 
+  // Fields to exclude
+  const removeFields = ['select'];
+
+  // Loop over removeFields and delete them from reqQuery
+  removeFields.forEach((param) => delete reqQuery[param]);
+
+  // Create query string
+  let queryStr = JSON.stringify(reqQuery);
+
+  // Create operators ($gt, $gte, $lt, $lte, $in)
   queryStr = queryStr.replace(
     /\b(gt|gte|lt|lte|in)\b/g,
     (match) => `$${match}`
   );
 
+  // Finding resource
   query = Bootcamp.find(JSON.parse(queryStr));
 
+  // Select Fields
+  if (req.query.select) {
+    const fields = req.query.select.split(',').join(' '); // İstekteki parametre alanları , ile ayrıldığı için önce diziye çevirip, boşluklu olacak şekilde String dönüşümünü join(' ') yapıyoruz. Boşluğun sebebi mongoose tarafı dökümantasyon query.select( 'name occupation' ) biçiminde çalışması. Araya, ortaya boşluk.
+    query = query.select(fields);
+  }
+
+  // Executing query
   const bootcamps = await query;
 
   res
