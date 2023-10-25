@@ -2,105 +2,111 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const geocoder = require('../utils/geocoder');
 
-const BootcampSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Lütfen isim giriniz.'],
-    unique: true,
-    trim: true,
-    maxlength: [50, 'İsim 50 karakteri geçemez.'],
-  },
-  slug: String,
-  description: {
-    type: String,
-    required: [true, 'Lütfen isim giriniz.'],
-    maxlength: [500, 'Açıklama 500 karakteri geçemez.'],
-  },
-  website: {
-    type: String,
-    match: [
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-      'HTTP ya da HTTPS içeren geçerli bir bağlantı giriniz.',
-    ],
-  },
-  phone: {
-    type: String,
-    maxlength: [20, 'Telefon numarası 20 karakteri geçemez.'],
-  },
-  email: {
-    type: String,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Lütfen geçerli bir e-posta adresi giriniz.',
-    ],
-  },
-  address: {
-    type: String,
-    required: [true, 'Lütfen bir adres giriniz.'],
-  },
-  location: {
-    // GeoJSON Point
-    type: {
+const BootcampSchema = new mongoose.Schema(
+  {
+    name: {
       type: String,
-      enum: ['Point'],
-      required: true,
+      required: [true, 'Lütfen isim giriniz.'],
+      unique: true,
+      trim: true,
+      maxlength: [50, 'İsim 50 karakteri geçemez.'],
     },
-    coordinates: {
-      type: [Number],
-      required: true,
-      index: '2dsphere',
+    slug: String,
+    description: {
+      type: String,
+      required: [true, 'Lütfen isim giriniz.'],
+      maxlength: [500, 'Açıklama 500 karakteri geçemez.'],
     },
-    formattedAdress: String,
-    street: String,
-    city: String,
-    state: String,
-    zipcode: String,
-    country: String,
+    website: {
+      type: String,
+      match: [
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
+        'HTTP ya da HTTPS içeren geçerli bir bağlantı giriniz.',
+      ],
+    },
+    phone: {
+      type: String,
+      maxlength: [20, 'Telefon numarası 20 karakteri geçemez.'],
+    },
+    email: {
+      type: String,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        'Lütfen geçerli bir e-posta adresi giriniz.',
+      ],
+    },
+    address: {
+      type: String,
+      required: [true, 'Lütfen bir adres giriniz.'],
+    },
+    location: {
+      // GeoJSON Point
+      type: {
+        type: String,
+        enum: ['Point'],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        index: '2dsphere',
+      },
+      formattedAdress: String,
+      street: String,
+      city: String,
+      state: String,
+      zipcode: String,
+      country: String,
+    },
+    careers: {
+      // Array of strings
+      type: [String],
+      required: true,
+      enum: [
+        'Web Development',
+        'Mobile Development',
+        'UI/UX',
+        'Data Science',
+        'Business',
+        'Other',
+      ],
+    },
+    averageRating: {
+      type: Number,
+      min: [1, 'Puan en az 1 olabilir.'],
+      max: [10, 'Puan en fazla 10 olabilir.'],
+    },
+    avarageCost: Number,
+    photo: {
+      type: String,
+      default: 'no-photo.jpg',
+    },
+    housing: {
+      type: Boolean,
+      default: false,
+    },
+    jobAssistance: {
+      type: Boolean,
+      default: false,
+    },
+    jobGuarantee: {
+      type: Boolean,
+      default: false,
+    },
+    acceptGi: {
+      type: Boolean,
+      default: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  careers: {
-    // Array of strings
-    type: [String],
-    required: true,
-    enum: [
-      'Web Development',
-      'Mobile Development',
-      'UI/UX',
-      'Data Science',
-      'Business',
-      'Other',
-    ],
-  },
-  averageRating: {
-    type: Number,
-    min: [1, 'Puan en az 1 olabilir.'],
-    max: [10, 'Puan en fazla 10 olabilir.'],
-  },
-  avarageCost: Number,
-  photo: {
-    type: String,
-    default: 'no-photo.jpg',
-  },
-  housing: {
-    type: Boolean,
-    default: false,
-  },
-  jobAssistance: {
-    type: Boolean,
-    default: false,
-  },
-  jobGuarantee: {
-    type: Boolean,
-    default: false,
-  },
-  acceptGi: {
-    type: Boolean,
-    default: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
 // Create bootcamp slug from the name
 BootcampSchema.pre('save', function (next) {
@@ -128,4 +134,20 @@ BootcampSchema.pre('save', async function (next) {
   this.address = undefined;
   next();
 });
+
+// Cascade delete courses when a bootcamp is deleted
+BootcampSchema.pre('remove', async function (next) {
+  console.log(`Kurslar ${this._id}'li bootcamp tarafından silindi.`);
+  await this.model('Course').deleteMany({ bootcamp: this._id });
+  next();
+});
+
+// Reverse populate with virtuals
+BootcampSchema.virtual('courses', {
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'bootcamp',
+  justOne: false,
+});
+
 module.exports = mongoose.model('Bootcamp', BootcampSchema);

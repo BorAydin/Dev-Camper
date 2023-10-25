@@ -13,7 +13,7 @@ connectDB();
 
 // Route files
 const bootcamps = require('./routes/bootcamps');
-const couresess = require('./routes/courses');
+const courses = require('./routes/courses');
 
 const app = express();
 
