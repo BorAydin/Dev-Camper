@@ -47,7 +47,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Add single course
+// @desc    Add course
 // @route   POST /api/v1/bootcamps/:bootcampid/courses
 // @access  Private
 exports.addCourse = asyncHandler(async (req, res, next) => {
@@ -68,4 +68,37 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     success: true,
     data: course,
   });
+});
+
+// @desc    Update course
+// @route   PUT /api/v1/courses/:id
+// @access  Private
+exports.updateCourse = asyncHandler(async (req, res, next) => {
+  let course = await Course.findById(req.params.id);
+
+  if (!course) {
+    return next(new ErrorResponse(`Bu ${req.params.id}'li kurs yok.`), 404);
+  }
+
+  course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    success: true,
+    data: course,
+  });
+});
+
+// desc     Delete course
+// @route   DELETE api/v1/courses/:id
+// access   Private
+exports.deleteCourse = asyncHandler(async (req, res, next) => {
+  const course = await Bootcamp.findByIdAndDelete(req.params.id);
+
+  if (!course) {
+    return next(new ErrorResponse(`${req.params.id}'li kurs bulunamadı.`, 404));
+  }
+  res.status(200).json({ succces: true, data: {} });
 });
