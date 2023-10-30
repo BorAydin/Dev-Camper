@@ -27,3 +27,18 @@ exports.protect = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Erişim için yetkiniz yok.', 401));
   }
 });
+
+// Grant access to spoecific roles
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ErrorResponse(
+          `${req.user.role} kullanıcı rolü bu işlem için yetkili değil.`,
+          403
+        )
+      );
+    }
+    next();
+  };
+};
