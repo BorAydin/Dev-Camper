@@ -46,6 +46,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.body.bootcamp);
 
@@ -53,6 +54,16 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     return next(
       new ErrorResponse(`Bu ${req.body.bootcamp}'li bootcamp yok.`),
       404
+    );
+  }
+
+  // Make sure user is bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `Idsi ${req.user.id} olan kullanıcı idsi ${bootcamp._id} olan bootcamp'e kurs eklemek için yetkili değil.`,
+        401
+      )
     );
   }
 
@@ -74,6 +85,16 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Bu ${req.params.id}'li kurs yok.`), 404);
   }
 
+  // Make sure user is course owner
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `Idsi ${req.user.id} olan kullanıcı idsi ${course._id} olan kursu güncellemek için yetkili değil.`,
+        401
+      )
+    );
+  }
+
   course = await Course.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
@@ -93,6 +114,16 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
 
   if (!course) {
     return next(new ErrorResponse(`${req.params.id}'li kurs bulunamadı.`, 404));
+  }
+
+  // Make sure user is bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `Idsi ${req.user.id} olan kullanıcı idsi ${course._id} olan kursu silmek için yetkili değil.`,
+        401
+      )
+    );
   }
 
   await course.remove();

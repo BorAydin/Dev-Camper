@@ -31,7 +31,7 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // access   Private
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
   // Add user to req.body
-  req.boy.user = req.user.id;
+  req.body.user = req.user.id;
 
   // Check for published bootcamp
   const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
@@ -70,7 +70,7 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(
       new ErrorResponse(
-        `${req.params.id}'li kullanıcı bu bootcamp'i güncellemek için yetkili değil.`,
+        `Idsi ${req.user.id} olan kullanıcı idsi ${bootcamp._id} olan bootcamp'i güncellemek için yetkili değil.`,
         401
       )
     );
@@ -100,7 +100,7 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(
       new ErrorResponse(
-        `${req.params.id}'li kullanıcı bu bootcamp'i silmek için yetkili değil.`,
+        `Idsi ${req.user.id} olan kullanıcı idsi ${bootcamp._id} olan bootcamp'i silmek için yetkili değil.`,
         401
       )
     );
@@ -147,6 +147,16 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   if (!bootcamp) {
     return next(
       new ErrorResponse(`${req.params.id}'li bootcamp bulunamadı.`, 404)
+    );
+  }
+
+  // Make sure user is bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `Idsi ${req.user.id} olan kullanıcı idsi ${bootcamp._id} olan bootcamp'i güncellemek için yetkili değil.`,
+        401
+      )
     );
   }
 
