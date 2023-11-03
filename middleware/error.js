@@ -10,7 +10,7 @@ const errorHandler = (err, reg, res, next) => {
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
-    const message = `${err.value}'li kaynak bulunamadı.`;
+    const message = 'Kaynak bulunamadı.';
     error = new ErrorResponse(message, 404);
   }
 
